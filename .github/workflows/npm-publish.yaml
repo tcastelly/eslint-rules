@@ -34,6 +34,7 @@ jobs:
         if: steps.version-updated.outputs.has-updated
         run: |
           npm install -g npm@latest
+          npm ci
           # Get version from package.json
           VERSION=$(node -p "require('./package.json').version")
           echo "Package version: $VERSION"
