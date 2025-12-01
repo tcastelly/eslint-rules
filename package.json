@@ -1,0 +1,19 @@
+{
+  "name": "eslint-rules",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/tcastelly/eslint-rules#readme",
+  "bugs": {
+    "url": "https://github.com/tcastelly/eslint-rules/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tcastelly/eslint-rules.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+  }
+}

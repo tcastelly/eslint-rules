@@ -1,0 +1,48 @@
+name: Publish to NPM
+on:
+  push:
+    branches:
+      - master
+      - test
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
+jobs:
+  build_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: detect package.version changes
+        uses: MontyD/package-json-updated-action@master
+        id: version-updated
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        if: steps.version-updated.outputs.has-updated
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        if: steps.version-updated.outputs.has-updated
+        with:
+          node-version: '24.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Publish package on NPM 📦
+        if: steps.version-updated.outputs.has-updated
+        run: |
+          npm install -g npm@latest
+          # Get version from package.json
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Package version: $VERSION"
+          
+          # Check if version contains a prerelease identifier
+          if [[ "$VERSION" == *"-"* ]]; then
+            echo "Prerelease detected, publishing with tag 'beta'"
+            npm publish --tag beta
+          else
+            echo "Stable release, publishing with default tag 'latest'"
+            npm publish
+          fi
