@@ -1,6 +1,6 @@
 {
   "name": "@tcy/eslint-rules",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "```typescript import { plugin as customRules } from 'tcy@eslint-rules/src/index.mjs';",
   "homepage": "https://github.com/tcastelly/eslint-rules#readme",
   "bugs": {
@@ -14,5 +14,14 @@
   "author": "",
   "type": "module",
   "main": "src/index.js",
-  "scripts": {}
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build:decl": "tsc",
+    "prepublishOnly": "npm run clean && npm run build:decl"
+  },
+  "devDependencies": {
+    "rimraf": "^6.1.2",
+    "typescript": "^5.9.3"
+  }
 }
