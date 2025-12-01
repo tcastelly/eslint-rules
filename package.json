@@ -1,7 +1,7 @@
 {
-  "name": "eslint-rules",
+  "name": "@tcy/eslint-rules",
   "version": "1.0.0",
-  "description": "",
+  "description": "```typescript import { plugin as customRules } from 'tcy@eslint-rules/src/index.mjs';",
   "homepage": "https://github.com/tcastelly/eslint-rules#readme",
   "bugs": {
     "url": "https://github.com/tcastelly/eslint-rules/issues"
@@ -14,6 +14,5 @@
   "author": "",
   "type": "module",
   "main": "src/index.js",
-  "scripts": {
-  }
+  "scripts": {}
 }
