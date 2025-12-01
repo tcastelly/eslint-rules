@@ -1,6 +1,6 @@
 {
   "name": "@tcy/eslint-rules",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "```typescript import { plugin as customRules } from 'tcy@eslint-rules/src/index.mjs';",
   "homepage": "https://github.com/tcastelly/eslint-rules#readme",
   "bugs": {
@@ -11,16 +11,22 @@
     "url": "git+https://github.com/tcastelly/eslint-rules.git"
   },
   "license": "ISC",
-  "author": "",
+  "author": "Thomas CASTELLY",
   "type": "module",
   "main": "src/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rimraf dist",
     "build:decl": "tsc",
-    "prepublishOnly": "npm run clean && npm run build:decl"
+    "prepublishOnly": "npm run clean && npm run test && npm run build:decl",
+    "test": "jest"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "@types/jest": "^30.0.0",
+    "babel-jest": "^30.2.0",
+    "jest": "^30.2.0",
     "rimraf": "^6.1.2",
     "typescript": "^5.9.3"
   }
