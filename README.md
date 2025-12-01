@@ -1,7 +1,7 @@
 # Custom rules 
 
 ```typescript
-import customRules from 'tcy@eslint-rules/src/index.mjs';
+import customRules from 'tcy@eslint-rules';
 
 const customConfig = [
   {
