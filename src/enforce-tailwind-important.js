@@ -119,6 +119,10 @@ export default {
           });
           break;
         }
+        case 'ConditionalExpression':
+          processExpression(node.consequent);
+          processExpression(node.alternate);
+          break;
         default:
           break;
       }
