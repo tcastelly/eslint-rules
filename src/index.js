@@ -3,6 +3,7 @@ import arrayElementsPerLineRule from './array-elements-per-line.js';
 import exportSpecifiersPerLineRule from './export-specifiers-per-line.js';
 import jsxExpressionStringLiterals from './jsx-expression-string-literals.js';
 import enforceTailwindImportant from './enforce-tailwind-important.js';
+import vModelNameMatch from './v-model-name-match.js';
 
 export default {
   rules: {
@@ -11,5 +12,6 @@ export default {
     'export-specifiers-per-line': exportSpecifiersPerLineRule,
     'jsx-expression-string-literals': jsxExpressionStringLiterals,
     'enforce-tailwind-important': enforceTailwindImportant,
+    'v-model-name-match': vModelNameMatch,
   },
 };
