@@ -1,3 +1,13 @@
+const unionContainsAllowedType = (typeNode, allowed) => {
+  if (typeNode.type === 'TSUnionType') {
+    return typeNode.types.some(
+      (t) => allowed.includes(t.type)
+    );
+  }
+
+  return allowed.includes(typeNode.type);
+};
+
 export default {
   meta: {
     type: 'problem',
@@ -42,8 +52,11 @@ export default {
           if (expr.name === 'dbIntBoolean') {
             const typeNode = node.typeAnnotation.typeAnnotation;
 
-            // Only autofix simple, explicit types
-            if (typeNode.type === 'TSNumberKeyword') {
+            const allowedTypes = ['TSNumberKeyword', 'TSBooleanKeyword'];
+
+            const isValid = unionContainsAllowedType(typeNode, allowedTypes);
+
+            if (isValid) {
               return;
             }
 
@@ -51,7 +64,7 @@ export default {
               node: typeNode,
               message: 'Property decorated with @dbIntBoolean must be of type "number"',
               fix(fixer) {
-                return fixer.replaceText(typeNode, 'number');
+                return fixer.replaceText(typeNode, 'boolean');
               },
             });
           }
