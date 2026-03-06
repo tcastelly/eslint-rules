@@ -1,7 +1,7 @@
 /**
  * @fileoverview Enforce all Tailwind classes to end with "!" (important modifier)
  */
-export const isMissingImportant = (cls) => !/^[a-zA-Z0-9-%&>*.:',/[\]()_]+(:?!)$/.test(cls);
+export const isMissingImportant = (cls) => !/^[a-zA-Z0-9-%&>*.:',/[\]()_@]+(:?!)$/.test(cls);
 
 export const addImportant = (cls) => `${cls}!`;
 
