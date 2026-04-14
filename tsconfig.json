@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "types": ["node"],
-    "outDir": "dist",
+    "outDir": "decl",
     "rootDir": "src",
     "declaration": true,
     "emitDeclarationOnly": true,

@@ -14,14 +14,14 @@
   "author": "Thomas CASTELLY",
   "type": "module",
   "main": "src/index.js",
-  "types": "dist/index.d.ts",
+  "types": "decl/index.d.ts",
   "exports": {
-    "./client": "./dist/client.d.ts",
-    "./back": "./dist/back.d.ts"
+    "./client": "./decl/client.d.ts",
+    "./back": "./decl/back.d.ts"
   },
   "scripts": {
     "build:decl": "tsc",
-    "clean": "rimraf dist",
+    "clean": "rimraf decl",
     "prepublishOnly": "npm run clean && npm run test && npm run build:decl",
     "test": "jest"
   },

@@ -9,21 +9,13 @@ import vuejsDefineComponent from './vuejs-define-component.js'
 import vuejsDefineWorkspace from './vuejs-define-workspace.js'
 
 export default {
-  plugins: {
-    tcy: {
-      rules: {
-        'import-specifiers-per-line': importSpecifiersPerLineRule,
-        'array-elements-per-line': arrayElementsPerLineRule,
-        'export-specifiers-per-line': exportSpecifiersPerLineRule,
-        'jsx-expression-string-literals': jsxExpressionStringLiterals,
-        'enforce-tailwind-important': enforceTailwindImportant,
-        'v-model-name-match': vModelNameMatch,
-        'decorator-type-enforcement': decoratorTypeEnforcement,
-        'vuejs-define-component': vuejsDefineComponent,
-        'vuejs-define-workspace': vuejsDefineWorkspace,
-      }
-    }
-  },
-  rules: {
-  },
-};
+  'import-specifiers-per-line': importSpecifiersPerLineRule,
+  'array-elements-per-line': arrayElementsPerLineRule,
+  'export-specifiers-per-line': exportSpecifiersPerLineRule,
+  'jsx-expression-string-literals': jsxExpressionStringLiterals,
+  'enforce-tailwind-important': enforceTailwindImportant,
+  'v-model-name-match': vModelNameMatch,
+  'decorator-type-enforcement': decoratorTypeEnforcement,
+  'vuejs-define-component': vuejsDefineComponent,
+  'vuejs-define-workspace': vuejsDefineWorkspace,
+}
