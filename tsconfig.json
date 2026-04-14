@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
+    "types": ["node"],
     "outDir": "dist",
+    "rootDir": "src",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "module": "ESNext",
+    "module": "nodenext",
     "allowJs": true,
     "checkJs": true,
-    "target": "es5",
+    "target": "esnext",
     "lib": ["es2016", "dom"],
     "noImplicitAny": false,
-    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true
   },
   "include": ["src"],
