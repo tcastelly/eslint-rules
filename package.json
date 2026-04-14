@@ -1,6 +1,6 @@
 {
   "name": "@tcy/eslint-rules",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "```typescript import { plugin as customRules } from 'tcy@eslint-rules/src/index.mjs';",
   "homepage": "https://github.com/tcastelly/eslint-rules#readme",
   "bugs": {
@@ -16,8 +16,14 @@
   "main": "src/index.js",
   "types": "decl/index.d.ts",
   "exports": {
-    "./client": "./decl/client.d.ts",
-    "./back": "./decl/back.d.ts"
+    "./client": {
+      "types": "./decl/client.d.ts",
+      "import": "./src/client.js"
+    },
+    "./back": {
+      "types": "./decl/back.d.ts",
+      "import": "./src/back.js"
+    }
   },
   "scripts": {
     "build:decl": "tsc",
