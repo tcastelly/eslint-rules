@@ -17,12 +17,20 @@
   "types": "decl/index.d.ts",
   "exports": {
     "./client": {
-      "types": "./decl/client.d.ts",
-      "import": "./src/client.js"
+      "types": "./decl/client/client.d.ts",
+      "import": "./src/client/client.js"
+    },
+    "./client/recommended": {
+      "types": "./decl/client/recommended.d.ts",
+      "import": "./src/client/recommended.js"
     },
     "./back": {
-      "types": "./decl/back.d.ts",
-      "import": "./src/back.js"
+      "types": "./decl/back/back.d.ts",
+      "import": "./src/back/back.js"
+    },
+    "./back/recommended": {
+      "types": "./decl/back/recommended.d.ts",
+      "import": "./src/back/recommended.js"
     }
   },
   "scripts": {

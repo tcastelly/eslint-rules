@@ -1,4 +1,4 @@
-import pluginConfig from './plugin.js'
+import pluginConfig from '../plugin.js'
 
 export default {
   plugins: {
@@ -7,6 +7,7 @@ export default {
     },
   },
   rules: {
+    // apply `tcy` rules
     'tcy/import-specifiers-per-line': ['error', { maxSpecifiers: 4 }],
     'tcy/export-specifiers-per-line': 'error',
     'tcy/array-elements-per-line': 'error',

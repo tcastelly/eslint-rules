@@ -1,4 +1,4 @@
-import pluginConfig from './plugin.js'
+import pluginConfig from '../plugin.js'
 
 export default {
   plugins: {

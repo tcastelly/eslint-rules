@@ -1,2 +1,2 @@
-export * as client from './client.js'
-export * as back from './back.js'
+export * as client from './client/client.js'
+export * as back from './back/back.js'
