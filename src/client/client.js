@@ -12,6 +12,7 @@ export default {
     'tcy/export-specifiers-per-line': 'error',
     'tcy/array-elements-per-line': 'error',
     'tcy/jsx-expression-string-literals': 'error',
+    'tcy/jsx-boolean-shorthand': 'error',
     'tcy/enforce-tailwind-important': 'error',
     'tcy/v-model-name-match': 'error',
     'tcy/vuejs-define-component': 'error',
