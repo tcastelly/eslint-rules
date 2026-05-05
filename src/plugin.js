@@ -3,6 +3,7 @@ import arrayElementsPerLineRule from './array-elements-per-line.js';
 import exportSpecifiersPerLineRule from './export-specifiers-per-line.js';
 import jsxBooleanShorthand from './jsx-boolean-shorthand.js'
 import jsxExpressionStringLiterals from './jsx-expression-string-literals.js';
+import jsxRefStringExists from './jsx-ref-string-exists.js';
 import enforceTailwindImportant from './enforce-tailwind-important.js';
 import vModelNameMatch from './v-model-name-match.js';
 import decoratorTypeEnforcement from './decorator-type-enforcement.js'
@@ -15,6 +16,7 @@ export default {
   'export-specifiers-per-line': exportSpecifiersPerLineRule,
   'jsx-boolean-shorthand': jsxBooleanShorthand,
   'jsx-expression-string-literals': jsxExpressionStringLiterals,
+  'jsx-ref-string-exists': jsxRefStringExists,
   'enforce-tailwind-important': enforceTailwindImportant,
   'v-model-name-match': vModelNameMatch,
   'decorator-type-enforcement': decoratorTypeEnforcement,
