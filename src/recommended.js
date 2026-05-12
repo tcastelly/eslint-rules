@@ -15,5 +15,6 @@ export default {
     args: 'after-used',
     ignoreRestSiblings: true,
     argsIgnorePattern: '^_',
+    caughtErrors: 'none',
   }],
 }
