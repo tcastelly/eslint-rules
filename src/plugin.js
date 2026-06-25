@@ -9,6 +9,7 @@ import vModelNameMatch from './v-model-name-match.js';
 import decoratorTypeEnforcement from './decorator-type-enforcement.js'
 import vuejsDefineComponent from './vuejs-define-component.js'
 import vuejsDefineWorkspace from './vuejs-define-workspace.js'
+import routeDtoRequired from './route-dto-required.js'
 
 export default {
   'import-specifiers-per-line': importSpecifiersPerLineRule,
@@ -22,4 +23,5 @@ export default {
   'decorator-type-enforcement': decoratorTypeEnforcement,
   'vuejs-define-component': vuejsDefineComponent,
   'vuejs-define-workspace': vuejsDefineWorkspace,
+  'route-dto-required': routeDtoRequired,
 }

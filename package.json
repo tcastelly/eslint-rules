@@ -1,6 +1,6 @@
 {
   "name": "@tcy/eslint-rules",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "```typescript import { plugin as customRules } from 'tcy@eslint-rules/src/index.mjs';",
   "homepage": "https://github.com/tcastelly/eslint-rules#readme",
   "bugs": {
@@ -40,10 +40,10 @@
     "test": "jest"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.5",
+    "@babel/core": "^8.0.1",
+    "@babel/preset-env": "^8.0.2",
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.7.0",
+    "@types/node": "^26.0.1",
     "babel-jest": "^30.4.1",
     "jest": "^30.4.2",
     "rimraf": "^6.1.3",

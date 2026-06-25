@@ -10,5 +10,6 @@ export default {
     'tcy/import-specifiers-per-line': ['error', { maxSpecifiers: 4 }],
     'tcy/export-specifiers-per-line': 'error',
     'tcy/array-elements-per-line': 'error',
+    'tcy/route-dto-required': 'error',
   }
 }
