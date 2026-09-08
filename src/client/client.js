@@ -19,5 +19,6 @@ export default {
     'tcy/vuejs-define-component': 'error',
     'tcy/vuejs-define-workspace': 'error',
     'tcy/require-fragment-key': 'error',
+    'tcy/no-static-key-in-map': 'error',
   }
 }
