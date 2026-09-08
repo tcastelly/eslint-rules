@@ -18,5 +18,6 @@ export default {
     'tcy/v-model-name-match': 'error',
     'tcy/vuejs-define-component': 'error',
     'tcy/vuejs-define-workspace': 'error',
+    'tcy/require-fragment-key': 'error',
   }
 }

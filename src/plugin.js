@@ -10,6 +10,7 @@ import decoratorTypeEnforcement from './decorator-type-enforcement.js'
 import vuejsDefineComponent from './vuejs-define-component.js'
 import vuejsDefineWorkspace from './vuejs-define-workspace.js'
 import routeDtoRequired from './route-dto-required.js'
+import requireFragmentKey from './require-fragment-key.js'
 
 export default {
   'import-specifiers-per-line': importSpecifiersPerLineRule,
@@ -24,4 +25,5 @@ export default {
   'vuejs-define-component': vuejsDefineComponent,
   'vuejs-define-workspace': vuejsDefineWorkspace,
   'route-dto-required': routeDtoRequired,
+  'require-fragment-key': requireFragmentKey,
 }
