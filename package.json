@@ -1,6 +1,6 @@
 {
   "name": "@tcy/eslint-rules",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "```typescript import { plugin as customRules } from 'tcy@eslint-rules/src/index.mjs';",
   "homepage": "https://github.com/tcastelly/eslint-rules#readme",
   "bugs": {
@@ -13,11 +13,6 @@
   "license": "ISC",
   "author": "Thomas CASTELLY",
   "type": "module",
-  "main": "src/index.js",
-  "types": "decl/index.d.ts",
-  "bin": {
-    "eslint-cache-guard": "./src/bin/eslint-cache-guard.js"
-  },
   "exports": {
     "./client": {
       "types": "./decl/client/client.d.ts",
@@ -40,6 +35,11 @@
       "import": "./src/back/http.js"
     }
   },
+  "main": "src/index.js",
+  "types": "decl/index.d.ts",
+  "bin": {
+    "eslint-cache-guard": "./src/bin/eslint-cache-guard.js"
+  },
   "scripts": {
     "build:decl": "tsc",
     "clean": "rimraf decl",
@@ -50,9 +50,9 @@
     "@babel/core": "^8.0.1",
     "@babel/preset-env": "^8.0.2",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.0.1",
-    "babel-jest": "^30.4.1",
-    "jest": "^30.4.2",
+    "@types/node": "^26.5.0",
+    "babel-jest": "^30.5.1",
+    "jest": "^30.5.1",
     "rimraf": "^6.1.3",
     "typescript": "^7.0.2"
   }
