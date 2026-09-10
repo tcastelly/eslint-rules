@@ -5,31 +5,76 @@ export const isMissingImportant = (cls) => !/^[a-zA-Z0-9-%&>*.:',/[\]()_@]+(:?!)
 
 export const addImportant = (cls) => `${cls}!`;
 
+/**
+ * Plain (non-Tailwind) classes that must NOT receive the "!" modifier.
+ *
+ * These ship in the widgets' bundled Bootstrap-style grid CSS and are matched by
+ * a bare `.class` selector. Appending "!" turns the token into `class!`, which
+ * matches no rule at all (Tailwind does not emit anything for it, and `.class`
+ * does not match the `class!` token) - silently breaking the layout.
+ */
+export const DEFAULT_IGNORED_CLASSES = [
+  'row',
+  'no-gutters',
+  'container',
+  'container-fluid',
+];
+
+/**
+ * Whether a class token must be flagged for a missing "!" modifier.
+ * @param {string} cls the class token
+ * @param {Set<string>} ignored classes that are allowed without "!"
+ */
+export const shouldFlag = (cls, ignored) => isMissingImportant(cls) && !ignored.has(cls);
+
+/** Build the set of ignored classes from the rule options. */
+export const resolveIgnored = (options) => new Set([
+  ...DEFAULT_IGNORED_CLASSES,
+  ...((options && options.ignore) || []),
+]);
+
 export default {
   meta: {
     type: 'layout',
     docs: { description: 'Enforce Tailwind classes end with "!"', recommended: false },
     fixable: 'code',
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          ignore: {
+            type: 'array',
+            items: { type: 'string' },
+            default: [],
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
     messages: { missingImportant: 'Tailwind class "{{cls}}" should end with "!"' },
   },
 
   create(context) {
     const source = context.getSourceCode();
 
+    const ignored = resolveIgnored(context.options[0]);
+
+    // a class needs the "!" modifier unless it is explicitly ignored
+    const isFlagged = (cls) => shouldFlag(cls, ignored);
+
     //----------------------------------------------------------------------
     // Helpers
     //----------------------------------------------------------------------
     function reportIfMissing(node, value) {
       const classes = value.split(/\s+/).map((cls) => cls.trim()).filter(Boolean);
-      const missing = classes.filter(isMissingImportant);
+      const missing = classes.filter(isFlagged);
 
       // nothing to fix
       if (!missing.length) {
         return;
       }
 
-      const fixed = classes.map((c) => (isMissingImportant(c) ? addImportant(c) : c)).join(' ');
+      const fixed = classes.map((c) => (isFlagged(c) ? addImportant(c) : c)).join(' ');
       context.report({
         node,
         messageId: 'missingImportant',
@@ -51,7 +96,7 @@ export default {
       for (let i = 0; i < quasis.length; i += 1) {
         // fix literal part
         const parts = quasis[i].value.raw.split(/\s+/).filter(Boolean);
-        const fixed = parts.map((p) => (isMissingImportant(p) ? addImportant(p) : p)).join(' ');
+        const fixed = parts.map((p) => (isFlagged(p) ? addImportant(p) : p)).join(' ');
         out += fixed;
 
         // add space before expression if needed
@@ -102,7 +147,7 @@ export default {
             .some((q) => q.value.raw
               .split(/\s+/)
               .filter(Boolean)
-              .some(isMissingImportant));
+              .some(isFlagged));
 
           if (!hasMissing) {
             return;
