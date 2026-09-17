@@ -116,24 +116,13 @@ export default {
 
       switch (node.type) {
         case 'Literal':
-          reportIfMissing(node, node.value);
+          // skip non-string literals, e.g. `cond && 0`
+          if (typeof node.value === 'string') {
+            reportIfMissing(node, node.value);
+          }
           break;
         case 'ArrayExpression':
-          node.elements.forEach((el) => {
-            if (!el) {
-              return;
-            }
-
-            if (el.type === 'Literal') {
-              reportIfMissing(el, el.value);
-            } else if (el.type === 'ObjectExpression') {
-              el.properties.forEach((p) => {
-                if (p.key?.type === 'Literal' && typeof p.key.value === 'string') {
-                  reportIfMissing(p.key, p.key.value);
-                }
-              });
-            }
-          });
+          node.elements.forEach(processExpression);
           break;
         case 'ObjectExpression':
           node.properties.forEach((p) => {
@@ -167,6 +156,14 @@ export default {
         case 'ConditionalExpression':
           processExpression(node.consequent);
           processExpression(node.alternate);
+          break;
+        case 'LogicalExpression':
+          // `cond && 'cls'`: only the right side is a class
+          // `cls || 'cls'` / `cls ?? 'cls'`: both sides can be classes
+          if (node.operator !== '&&') {
+            processExpression(node.left);
+          }
+          processExpression(node.right);
           break;
         default:
           break;
