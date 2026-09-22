@@ -20,5 +20,6 @@ export default {
     'tcy/vuejs-define-workspace': 'error',
     'tcy/require-fragment-key': 'error',
     'tcy/no-static-key-in-map': 'error',
+    'tcy/consistent-const-scoping': 'error',
   }
 }

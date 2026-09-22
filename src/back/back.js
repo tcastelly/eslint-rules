@@ -11,5 +11,6 @@ export default {
     'tcy/export-specifiers-per-line': 'error',
     'tcy/array-elements-per-line': 'error',
     'tcy/route-dto-required': 'error',
+    'tcy/consistent-const-scoping': 'error',
   }
 }

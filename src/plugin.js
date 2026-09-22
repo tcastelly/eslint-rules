@@ -12,6 +12,7 @@ import vuejsDefineWorkspace from './vuejs-define-workspace.js'
 import routeDtoRequired from './route-dto-required.js'
 import requireFragmentKey from './require-fragment-key.js'
 import noStaticKeyInMap from './no-static-key-in-map.js'
+import consistentConstScoping from './consistent-const-scoping.js'
 
 export default {
   'import-specifiers-per-line': importSpecifiersPerLineRule,
@@ -28,4 +29,5 @@ export default {
   'route-dto-required': routeDtoRequired,
   'require-fragment-key': requireFragmentKey,
   'no-static-key-in-map': noStaticKeyInMap,
+  'consistent-const-scoping': consistentConstScoping,
 }
