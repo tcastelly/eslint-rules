@@ -39,6 +39,17 @@
  *   - the initializer reads a parameter, an outer local, `this`, `super`,
  *     or `arguments` — moving it would change what it reads
  *   - the initializer is not provably side-effect-free (see above)
+ *
+ * Which *shape* of initializer gets flagged is configurable via the `types`
+ * option, so different parts of a codebase can opt into different strictness
+ * levels (e.g. only arrow functions in most folders, arrow functions +
+ * primitives in a folder that wants to be stricter):
+ *
+ *   'consistent-const-scoping': ['error', { types: ['arrow-function', 'primitive'] }]
+ *
+ * Recognized values: 'primitive', 'template-literal', 'expression' (identifier /
+ * unary / binary / logical / conditional / member access), 'array', 'object',
+ * 'arrow-function', 'function-expression'. Defaults to `['arrow-function']`.
  */
 
 const LITERAL_TYPES = new Set([
@@ -59,6 +70,55 @@ const UNWRAP_TYPES = new Set([
 ]);
 
 const FUNCTION_TYPES = new Set(['FunctionExpression', 'ArrowFunctionExpression']);
+
+/** All initializer categories the `types` option can select. */
+export const ALL_INIT_TYPES = [
+  'primitive',
+  'template-literal',
+  'expression',
+  'array',
+  'object',
+  'arrow-function',
+  'function-expression',
+];
+
+export const DEFAULT_INIT_TYPES = ['arrow-function'];
+
+const CATEGORY_BY_TYPE = {
+  ArrowFunctionExpression: 'arrow-function',
+  FunctionExpression: 'function-expression',
+  ArrayExpression: 'array',
+  ObjectExpression: 'object',
+  TemplateLiteral: 'template-literal',
+};
+
+const unwrap = (node) => (node && UNWRAP_TYPES.has(node.type) ? unwrap(node.expression) : node);
+
+/**
+ * Which `types` category a (already known-pure) initializer belongs to, after
+ * unwrapping the same `as` / `!` / `satisfies` / parens wrappers the purity
+ * check sees through. `null` for a node that isn't a recognized initializer
+ * shape at all.
+ */
+export const classifyInit = (node) => {
+  const inner = unwrap(node);
+  if (!inner) return null;
+  if (LITERAL_TYPES.has(inner.type)) return 'primitive';
+  if (CATEGORY_BY_TYPE[inner.type]) return CATEGORY_BY_TYPE[inner.type];
+  if (
+    inner.type === 'Identifier'
+    || inner.type === 'UnaryExpression'
+    || inner.type === 'BinaryExpression'
+    || inner.type === 'LogicalExpression'
+    || inner.type === 'ConditionalExpression'
+    || inner.type === 'MemberExpression'
+    || inner.type === 'OptionalMemberExpression'
+  ) return 'expression';
+  return null;
+};
+
+/** Build the set of enabled initializer categories from the rule options. */
+export const resolveInitTypes = (options) => new Set((options && options.types) || DEFAULT_INIT_TYPES);
 
 /** A value that evaluates the same way, with no side effects, wherever it runs. */
 export const isPureExpression = (node) => {
@@ -144,7 +204,20 @@ export default {
         + 'outside so it is not rebuilt on every call.',
       recommended: false,
     },
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          types: {
+            type: 'array',
+            items: { enum: ALL_INIT_TYPES },
+            uniqueItems: true,
+            default: DEFAULT_INIT_TYPES,
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
     messages: {
       hoistable:
         '`{{name}}` does not depend on anything from `{{fnName}}`\'s scope — declare it '
@@ -154,6 +227,7 @@ export default {
 
   create(context) {
     const { sourceCode } = context;
+    const enabledTypes = resolveInitTypes(context.options[0]);
 
     /** Every scope from `node` up to (excluding) module/global scope, or `null` if none is a function. */
     const blockingChain = (node) => {
@@ -189,6 +263,7 @@ export default {
         if (!isPureExpression(node.init)) return;
         if (containsBlockingThis(node.init)) return;
         if (isReferencedIn(chain, node.init.range)) return;
+        if (!enabledTypes.has(classifyInit(node.init))) return;
 
         const fnScope = nearestFunctionScope(chain);
 
