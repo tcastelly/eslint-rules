@@ -34,6 +34,7 @@ The plugin ships two bundles — `tcy@eslint-rules/back` and `tcy@eslint-rules/c
 | `vuejs-define-workspace` | Problem | Require a `route` property in `defineComponent` for `Workspace*` / `Page*` files |
 | `require-fragment-key` | Problem | Require a `key` on a Fragment only where an un-keyed children diff can misalign |
 | `no-static-key-in-map` | Problem | Disallow a static `key` on the root element returned from `.map()` / `.flatMap()` |
+| `no-v-model-on-prop` | Problem | Disallow `v-model` bound to a component prop (`c.x` where `x` is in `Props`) |
 
 ### Other rules (registered, but not enabled by either bundle by default)
 
@@ -455,6 +456,42 @@ Invalid:
 ```jsx
 list.map((item) => <Row key="row" />);
 list.map(() => <Fragment key="rows">…</Fragment>);
+```
+
+#### 10. no-v-model-on-prop
+
+**Type:** Problem
+
+**Description:** Disallows `v-model` / `v-model:xxx` bound to a prop of the component, in a render function receiving a `Context<typeof setup, Props>`.
+
+- `v-model={c.value}` with `value` in `Props`: props are readonly, the update is dropped (Vue warning). Emit an update event instead.
+- `v-model={c.row.field}` with `row` in `Props`: Vue doesn't complain, but the object belongs to the parent component.
+
+`Props` is read from the second type argument of `Context` (directly or through an alias like `type Foo = Context<typeof setup, Props>`). A prop and a setup value can't share a name, so being a key of `Props` is enough.
+
+**Requires** TypeScript type information (`parserOptions.projectService`); without it the rule does nothing.
+
+**Options:**
+- `allowNested` (boolean, default: `false`) - Allow `v-model` on a field of a prop object (`c.row.field`)
+- `contextTypeName` (string, default: `'Context'`) - Name of the context type
+
+**Examples:**
+
+```tsx
+// Props: { value: string; row: RowDto }
+export type Foo = Context<typeof setup, Props>;
+
+export default function (c: Foo) {
+  return (
+    <>
+      <BaseInput value={c.value} onUpdate:modelValue={c.setValue} /> {/* valid */}
+      <BaseInput v-model={c.localValue} />                           {/* valid: setup value */}
+
+      <BaseInput v-model={c.value} />                                {/* invalid */}
+      <BaseInput v-model={c.row.field} />                            {/* invalid, unless allowNested */}
+    </>
+  );
+}
 ```
 
 ### Other rules

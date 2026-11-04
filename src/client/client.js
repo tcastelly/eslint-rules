@@ -21,5 +21,6 @@ export default {
     'tcy/require-fragment-key': 'error',
     'tcy/no-static-key-in-map': 'error',
     'tcy/consistent-const-scoping': 'error',
+    'tcy/no-v-model-on-prop': 'error',
   }
 }

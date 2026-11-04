@@ -13,6 +13,7 @@ import routeDtoRequired from './route-dto-required.js'
 import requireFragmentKey from './require-fragment-key.js'
 import noStaticKeyInMap from './no-static-key-in-map.js'
 import consistentConstScoping from './consistent-const-scoping.js'
+import noVModelOnProp from './no-v-model-on-prop.js'
 
 export default {
   'import-specifiers-per-line': importSpecifiersPerLineRule,
@@ -30,4 +31,5 @@ export default {
   'require-fragment-key': requireFragmentKey,
   'no-static-key-in-map': noStaticKeyInMap,
   'consistent-const-scoping': consistentConstScoping,
+  'no-v-model-on-prop': noVModelOnProp,
 }
