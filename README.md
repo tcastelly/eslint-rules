@@ -35,12 +35,15 @@ The plugin ships two bundles — `tcy@eslint-rules/back` and `tcy@eslint-rules/c
 | `require-fragment-key` | Problem | Require a `key` on a Fragment only where an un-keyed children diff can misalign |
 | `no-static-key-in-map` | Problem | Disallow a static `key` on the root element returned from `.map()` / `.flatMap()` |
 | `no-v-model-on-prop` | Problem | Disallow `v-model` bound to a component prop (`c.x` where `x` is in `Props`) |
+| `no-unused-setup-return` | Suggestion | Disallow a key returned by a composable (`useXxx.ts`) that the component doesn't use (render or other compositions) |
 
 ### Other rules (registered, but not enabled by either bundle by default)
 
 | Rule Name | Type | Description |
 |-----------|------|-------------|
 | `decorator-type-enforcement` | Problem | Enforce a property's type based on its `@boolean` / `@dbIntBoolean` decorator |
+
+> `no-unused-setup-return` is exported by the plugin but not enabled by `client.js` (it reports public API read through a component ref, like `submit` / `reload` / `focus`, and composables shared between components) — turn it on explicitly with `'tcy/no-unused-setup-return': 'warn'`.
 
 > `decorator-type-enforcement` is exported by the plugin but isn't listed in either `src/back/back.js` or `src/client/client.js` — turn it on explicitly (see [Usage](#usage)) if you want it.
 
@@ -593,4 +596,27 @@ const clientConfig = [
 export default [
   ...clientConfig,
 ];
+```
+
+#### no-unused-setup-return
+
+**Type:** Suggestion
+
+**Description:** Reports a key returned by a composable (`useXxx.ts`) that nothing else of the component reads. The rule runs on a `use*.ts` file imported by the `Component.ts` (the file calling `defineComponent`) of its directory. A key is used when its name appears in another file of the directory or of its sub-directories: the render, the component file or another composable (`useGridConfig(p, { columnFilteredName })`). `ref="name"` is a use too.
+
+The check is by name: it can miss an unused key sharing its name with something else, but doesn't report a used one. The component is skipped when a render spreads (`...c`) or passes (`foo(c)`) its whole context.
+
+Doesn't need TypeScript type information.
+
+**Options:**
+- `ignore` (string[], default: `[]`) - keys never reported (public API called through a component ref)
+
+```ts
+// useDailyPL.ts
+export default function (props: Props) {
+  return {
+    series,        // ✓ c.series in useRender.tsx
+    isPending,     // ✗ not read anywhere else
+  };
+}
 ```

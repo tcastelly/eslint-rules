@@ -22,5 +22,6 @@ export default {
     'tcy/no-static-key-in-map': 'error',
     'tcy/consistent-const-scoping': 'error',
     'tcy/no-v-model-on-prop': 'error',
+    'tcy/no-unused-setup-return': 'error',
   }
 }

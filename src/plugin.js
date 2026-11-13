@@ -14,6 +14,7 @@ import requireFragmentKey from './require-fragment-key.js'
 import noStaticKeyInMap from './no-static-key-in-map.js'
 import consistentConstScoping from './consistent-const-scoping.js'
 import noVModelOnProp from './no-v-model-on-prop.js'
+import noUnusedSetupReturn from './no-unused-setup-return.js'
 
 export default {
   'import-specifiers-per-line': importSpecifiersPerLineRule,
@@ -32,4 +33,5 @@ export default {
   'no-static-key-in-map': noStaticKeyInMap,
   'consistent-const-scoping': consistentConstScoping,
   'no-v-model-on-prop': noVModelOnProp,
+  'no-unused-setup-return': noUnusedSetupReturn,
 }
