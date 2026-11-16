@@ -28,6 +28,7 @@ The plugin ships two bundles — `tcy@eslint-rules/back` and `tcy@eslint-rules/c
 | `jsx-expression-string-literals` | Suggestion | Enforce string literals instead of string expressions in JSX |
 | `jsx-boolean-shorthand` | Suggestion | Enforce shorthand boolean syntax in JSX props |
 | `jsx-ref-string-exists` | Problem | Ensure a string ref (`ref="name"`) exists on the render function's first parameter type |
+| `jsx-ref-type-match` | Problem | Ensure the variable behind a string ref is typed with the element or component it is bound to |
 | `enforce-tailwind-important` | Layout | Enforce Tailwind classes end with the `!` important modifier |
 | `v-model-name-match` | Suggestion | Enforce v-model name matching variable names |
 | `vuejs-define-component` | Layout | Enforce use of `defineComponent` for Vue components |
@@ -42,8 +43,6 @@ The plugin ships two bundles — `tcy@eslint-rules/back` and `tcy@eslint-rules/c
 | Rule Name | Type | Description |
 |-----------|------|-------------|
 | `decorator-type-enforcement` | Problem | Enforce a property's type based on its `@boolean` / `@dbIntBoolean` decorator |
-
-> `no-unused-setup-return` is exported by the plugin but not enabled by `client.js` (it reports public API read through a component ref, like `submit` / `reload` / `focus`, and composables shared between components) — turn it on explicitly with `'tcy/no-unused-setup-return': 'warn'`.
 
 > `decorator-type-enforcement` is exported by the plugin but isn't listed in either `src/back/back.js` or `src/client/client.js` — turn it on explicitly (see [Usage](#usage)) if you want it.
 
@@ -296,7 +295,40 @@ function MyComponent(props: { other: unknown }) {
 }
 ```
 
-#### 4. enforce-tailwind-important
+#### 4. jsx-ref-type-match
+
+**Type:** Problem
+
+**Description:** Ensures the variable behind a string ref (`ref="name"`) is typed with what it is bound to, so a call through the ref (`c.input.value?.focus()`) is checked by TypeScript. An untyped ref (`ref()` is `any`) hides it: removing `focus` from the child compiles fine and fails at runtime.
+
+The declared type is the type of `name` on the render function's first parameter (as in `jsx-ref-string-exists`). The expected type is:
+- native element (`<div>`, `<svg>`): its interface from `HTMLElementTagNameMap` / `SVGElementTagNameMap` (`HTMLDivElement`, `SVGSVGElement`)
+- component: the type exported with the component's name from the file declaring it (`export type BaseInput = Context<typeof setup, Props>` next to `export default defineComponent(...)`), else the instance type of a Vue constructor (`DefineComponent`)
+- dynamic tag typed `any` (`<Component>` from a slot): not checked, only an untyped ref is reported
+
+Reports:
+- `untypedRef`: the ref is `any` / `unknown` / only `null` (`ref()`, `ref(null)`)
+- `refTypeMismatch`: the expected type isn't assignable to the declared one (`null` / `undefined` removed). A wider type is fine (`ref<HTMLElement>()` on a `<div>`).
+- `unwrappedRef`: `ref<T>(initialValue)` types the value as `UnwrapRef<T>`, which a component instance doesn't satisfy. Use `ref<T>()` or `shallowRef<T | null>(null)`.
+
+**Requires** TypeScript type information (`parserOptions.projectService`); without it the rule does nothing (`jsx-ref-string-exists` reports it).
+
+**Examples:**
+
+```tsx
+// setup
+const input = ref<BaseInput>();            // valid
+const root = ref<HTMLElement>();           // valid on <div>
+const el = ref();                          // invalid: untyped
+const other = ref<HTMLInputElement>();     // invalid on <BaseInput>
+const cmp = ref<BaseInput | null>(null);   // invalid: unwrapped, use ref<BaseInput>()
+
+// render
+<BaseInput ref="input" />
+<div ref="root" />
+```
+
+#### 5. enforce-tailwind-important
 
 **Type:** Layout
 
@@ -331,7 +363,7 @@ Automatically fixes to:
 const cardCls = 'rounded-lg! shadow!';
 ```
 
-#### 5. v-model-name-match
+#### 6. v-model-name-match
 
 **Type:** Suggestion
 
@@ -350,7 +382,7 @@ Invalid:
 <input v-model="value" />
 ```
 
-#### 6. vuejs-define-component
+#### 7. vuejs-define-component
 
 **Type:** Layout
 
@@ -380,7 +412,7 @@ export default defineComponent({
 });
 ```
 
-#### 7. vuejs-define-workspace
+#### 8. vuejs-define-workspace
 
 **Type:** Problem
 
@@ -411,7 +443,7 @@ export default defineComponent({
 });
 ```
 
-#### 8. require-fragment-key
+#### 9. require-fragment-key
 
 **Type:** Problem
 
@@ -441,7 +473,7 @@ list.map((item) => <>{item.label}</>);
 </div>
 ```
 
-#### 9. no-static-key-in-map
+#### 10. no-static-key-in-map
 
 **Type:** Problem
 
@@ -461,7 +493,7 @@ list.map((item) => <Row key="row" />);
 list.map(() => <Fragment key="rows">…</Fragment>);
 ```
 
-#### 10. no-v-model-on-prop
+#### 11. no-v-model-on-prop
 
 **Type:** Problem
 
@@ -606,10 +638,28 @@ export default [
 
 The check is by name: it can miss an unused key sharing its name with something else, but doesn't report a used one. The component is skipped when a render spreads (`...c`) or passes (`foo(c)`) its whole context.
 
-Doesn't need TypeScript type information.
+**Read from another component, through a ref.** With TypeScript type information (`parserOptions.projectService`), a key not found by name is searched in the whole program: an identifier resolving to the returned property is a use. It finds the public API called by a parent through a typed ref:
+
+```ts
+// grid/cell/editable/boolean/useVGridCellEditableBoolean.ts
+const vInputCheckboxBoolean = ref<VInputCheckboxBoolean>(); // type Context<typeof setup, Props>
+onMounted(() => vInputCheckboxBoolean.value?.focus());       // `focus` of useVInputCheckboxBoolean is used
+```
+
+The ref must be typed: `ref()` is `any` and hides the call (see `jsx-ref-type-match`). Without type information, only the check by name runs.
+
+**Public API.** A key read by another app (a library) can't be found: mark it `@public` in a comment before the key, or after it on the same line:
+
+```ts
+return {
+  /** @public */
+  focus,
+  reload, // @public
+};
+```
 
 **Options:**
-- `ignore` (string[], default: `[]`) - keys never reported (public API called through a component ref)
+- `ignore` (string[], default: `[]`) - keys never reported, in every composable (prefer `@public` on the key)
 
 ```ts
 // useDailyPL.ts
@@ -617,6 +667,9 @@ export default function (props: Props) {
   return {
     series,        // ✓ c.series in useRender.tsx
     isPending,     // ✗ not read anywhere else
+    focus,         // ✓ read by a parent: `cmp.value?.focus()` with `cmp = ref<MyCmp>()`
+    /** @public */
+    reload,        // ✓ public API
   };
 }
 ```

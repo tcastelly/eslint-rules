@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
-  getKeyName, getWholeContextUsage, isComponentFileName, isComposableFile, isImportedElsewhere, readImportedRenders, isUsed, stripComments, usesWholeContext,
+  getKeyName, getWholeContextUsage, isComponentFileName, isComposableFile, isImportedElsewhere, isPublicComment, readImportedRenders, isUsed, stripComments, usesWholeContext,
 } from '../src/no-unused-setup-return';
 
 describe('GIVEN "no-unused-setup-return" / isComposableFile', () => {
@@ -132,5 +132,21 @@ describe('GIVEN "no-unused-setup-return" / readImportedRenders', () => {
 
   it('THEN an alias import is ignored', () => {
     expect(readImportedRenders("import render from '@/x/render';", '/tmp')).toEqual([]);
+  });
+});
+
+describe('GIVEN "no-unused-setup-return" / isPublicComment', () => {
+  it.each([
+    // comment values, as given by ESLint (without the delimiters)
+    ['* @public ', true], // /** @public */
+    [' @public', true], // // @public
+    [' @public called by the parent', true],
+    ['*\n   * Focus the input\n   * @public\n   ', true], // multi-line JSDoc
+    [' public', false],
+    [' @publicApi', false],
+    [' not @public-ish', false],
+    [' foo@public', false],
+  ])('THEN %j → %s', (text, expected) => {
+    expect(isPublicComment(text)).toBe(expected);
   });
 });

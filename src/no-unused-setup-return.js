@@ -15,6 +15,11 @@
 // The check is by name, on purpose: it can miss an unused key sharing its name with something else,
 // but never reports a used one. `ref="name"` is a use too.
 //
+// A key read from outside the component, through a typed ref (`cmp.value?.focus()` with
+// `ref<VInputCheckboxBoolean>()`), is used too: with type information, the program is searched for an
+// identifier resolving to the returned property. A key read by another app (the public API of a
+// library) can't be found: mark it `/** @public */ focus,` (or `focus, // @public`).
+//
 // The directory is skipped when:
 //   - the composable is imported by a file of another directory (a component reusing it)
 //   - it has no `Component.ts` (a file calling `defineComponent`) importing the composable:
@@ -32,7 +37,8 @@ export default {
       description: 'Disallow a key returned by a composable that is not used by the component (render or other compositions).',
     },
     messages: {
-      unused: '"{{name}}" is returned by the setup but not used by the render or by another composition of the component.',
+      unused: '"{{name}}" is returned by the setup but not used by the render or by another composition of the component. '
+        + 'If it is public API read through a component ref, mark it `/** @public */`.',
     },
     schema: [{
       type: 'object',
@@ -104,6 +110,10 @@ export default {
 
     const exportedNames = new Set();
 
+    const isPublic = (prop) => hasPublicTag(context.sourceCode, prop);
+    const isReadThroughType = makeTypeUsage(context.sourceCode.parserServices);
+    const options = { ignore, isPublic, isReadThroughType };
+
     return {
       Program(program) {
         for (const node of program.body) {
@@ -121,7 +131,7 @@ export default {
         enter(node);
         // `=> ({ a, b })`
         if (node.body.type === 'ObjectExpression' && isTarget(node, exportedNames)) {
-          check(context, node.body, texts, ignore);
+          check(context, node.body, texts, options);
         }
       },
       'ArrowFunctionExpression:exit': leave,
@@ -130,7 +140,7 @@ export default {
         if (node.argument?.type !== 'ObjectExpression') return;
         const fn = stack[stack.length - 1];
         if (!fn || !isTarget(fn, exportedNames)) return;
-        check(context, node.argument, texts, ignore);
+        check(context, node.argument, texts, options);
       },
     };
   },
@@ -407,13 +417,117 @@ export const getKeyName = (prop) => {
   return null;
 };
 
-const check = (context, objectNode, texts, ignore) => {
+const check = (context, objectNode, texts, { ignore, isPublic, isReadThroughType }) => {
   for (const prop of objectNode.properties) {
     const name = getKeyName(prop);
-    if (!name || ignore.includes(name)) continue;
+    if (!name || ignore.includes(name) || isPublic(prop)) continue;
 
-    if (!isUsed(name, texts)) {
+    // by name first (cheap), then through the types (a component ref in another directory)
+    if (!isUsed(name, texts) && !isReadThroughType(objectNode, prop, name)) {
       context.report({ node: prop, messageId: 'unused', data: { name } });
     }
   }
+};
+
+// ─── @public ────────────────────────────────────────────────────────────────
+
+const PUBLIC_TAG = /(?:^|[\s*])@public(?=[\s*]|$)/;
+
+/** A comment text marks a key as public */
+export const isPublicComment = (text) => PUBLIC_TAG.test(text);
+
+/**
+ * `/** @public *\/ focus,` (comment before the key) or `focus, // @public` (comment after it,
+ * on the same line, the comma between)
+ */
+const hasPublicTag = (sourceCode, prop) => {
+  // `a, // @public` then `b` on the next line: the comment belongs to `a`, not to `b`
+  const before = sourceCode.getTokenBefore(prop);
+  const trailsPrevious = (c) => before?.value === ','
+    && c.loc.start.line === before.loc.end.line
+    && c.loc.end.line < prop.loc.start.line;
+
+  if (sourceCode.getCommentsBefore(prop).some((c) => !trailsPrevious(c) && isPublicComment(c.value))) return true;
+
+  let token = sourceCode.getTokenAfter(prop, { includeComments: true });
+  if (token?.type === 'Punctuator' && token.value === ',') {
+    token = sourceCode.getTokenAfter(token, { includeComments: true });
+  }
+  if (!token || (token.type !== 'Line' && token.type !== 'Block')) return false;
+  if (token.loc.start.line !== prop.loc.end.line || !isPublicComment(token.value)) return false;
+
+  // the comment ends the line, else it leads the next key: `h, /** @public */ i,`
+  const next = sourceCode.getTokenAfter(token, { includeComments: true });
+  return !next || next.loc.start.line > token.loc.end.line;
+};
+
+// ─── read through the types ─────────────────────────────────────────────────
+
+/**
+ * `(objectNode, prop, name) => boolean`: an identifier of the program resolves to the returned
+ * property, e.g. `cmp.value?.focus()` with `cmp = ref<Cmp>()` and `type Cmp = Context<typeof setup>`
+ * (a mapped type keeps the declaration of the original property). Without type information, `false`.
+ */
+const makeTypeUsage = (services) => {
+  if (!services?.program || !services.esTreeNodeToTSNodeMap) return () => false;
+
+  const { program } = services;
+  const checker = program.getTypeChecker();
+
+  return (objectNode, prop, name) => {
+    const tsObject = services.esTreeNodeToTSNodeMap.get(objectNode);
+    const tsProp = services.esTreeNodeToTSNodeMap.get(prop);
+    if (!tsObject || !tsProp) return false;
+
+    const symbol = checker.getPropertyOfType(checker.getTypeAtLocation(tsObject), name);
+    if (!symbol) return false;
+
+    for (const id of findIdentifiers(program, name)) {
+      // the key itself
+      if (id.parent === tsProp) continue;
+
+      const used = checker.getSymbolAtLocation(id);
+      if (used && isSameProperty(checker, used, symbol, tsProp)) return true;
+    }
+    return false;
+  };
+};
+
+/** `used` is `target`, or a symbol derived from it (mapped / union / intersection type) */
+const isSameProperty = (checker, used, target, tsProp) => {
+  if (used === target) return true;
+  const roots = [used, ...(checker.getRootSymbols?.(used) ?? [])];
+  return roots.some((s) => s === target || s.declarations?.includes(tsProp));
+};
+
+const identifiersCache = new WeakMap(); // program → Map<name, identifiers>
+
+/**
+ * Identifiers named `name` in the source files of the program (not `.d.ts`, not node_modules).
+ * Matched on `escapedText`, not on `SyntaxKind`: the rule doesn't import `typescript`, and
+ * the enum values change between TS versions.
+ */
+const findIdentifiers = (program, name) => {
+  let byName = identifiersCache.get(program);
+  if (!byName) {
+    byName = new Map();
+    identifiersCache.set(program, byName);
+  }
+  if (byName.has(name)) return byName.get(name);
+
+  const result = [];
+  const visit = (node) => {
+    if (node.escapedText === name) result.push(node);
+    node.forEachChild(visit);
+  };
+
+  for (const sf of program.getSourceFiles()) {
+    if (sf.isDeclarationFile || sf.fileName.includes('/node_modules/')) continue;
+    // cheap filter before walking the tree
+    if (!sf.text.includes(name)) continue;
+    visit(sf);
+  }
+
+  byName.set(name, result);
+  return result;
 };
