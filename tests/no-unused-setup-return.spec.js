@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
-  getKeyName, getWholeContextUsage, isComponentFileName, isComposableFile, isImportedElsewhere, isPublicComment, readImportedRenders, isUsed, stripComments, usesWholeContext,
+  findOwnComponent, getKeyName, getWholeContextUsage, isComponentFileName, isComposableFile, isImportedElsewhere, isPublicComment, readImportedRenders, isUsed, stripComments, usesWholeContext,
 } from '../src/no-unused-setup-return';
 
 describe('GIVEN "no-unused-setup-return" / isComposableFile', () => {
@@ -148,5 +148,32 @@ describe('GIVEN "no-unused-setup-return" / isPublicComment', () => {
     [' foo@public', false],
   ])('THEN %j → %s', (text, expected) => {
     expect(isPublicComment(text)).toBe(expected);
+  });
+});
+
+describe('GIVEN "no-unused-setup-return" / findOwnComponent', () => {
+  const sibling = (name, text, inner = false) => ({
+    name, text, inner, isRender: false, isComposable: /^use[A-Z]/.test(name),
+  });
+  const other = sibling('VGridColumnActionRender.ts', "import setup from '@/widgets/useAbstractRender';\nexport default defineComponent({ setup });");
+  const own = sibling('VGridColumns.ts', "import setup from './useVGridColumns';\nexport default defineComponent({ setup });");
+
+  it('THEN skips another component of the directory listed first', () => {
+    expect(findOwnComponent([other, own], 'useVGridColumns')).toBe(own);
+  });
+  it('THEN accepts an import with an extension', () => {
+    const withExt = sibling('A.ts', "import setup from './useA.ts';\ndefineComponent({ setup });");
+    expect(findOwnComponent([withExt], 'useA')).toBe(withExt);
+  });
+  it('THEN no component imports the composable → undefined', () => {
+    expect(findOwnComponent([other], 'useVGridColumns')).toBeUndefined();
+  });
+  it('THEN a component of a sub-directory is ignored', () => {
+    const inner = sibling('VGridColumns.ts', own.text, true);
+    expect(findOwnComponent([inner], 'useVGridColumns')).toBeUndefined();
+  });
+  it('THEN a composable importing it is not a component', () => {
+    const composable = sibling('useB.ts', "import useA from './useA';\ndefineComponent({});");
+    expect(findOwnComponent([composable], 'useA')).toBeUndefined();
   });
 });

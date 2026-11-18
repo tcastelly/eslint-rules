@@ -69,8 +69,7 @@ export default {
       // used by a component of another directory: its keys are read there
       if (isImportedElsewhere(filename)) return {};
 
-      const component = siblings.find((s) => !s.inner && isComponentFile(s));
-      if (!component || !new RegExp(`from\\s+['"]\\./${escapeRegExp(base)}['"]`).test(component.text)) return {};
+      if (!findOwnComponent(siblings, base)) return {};
     } else if (!/\bdefineComponent\s*\(/.test(context.sourceCode.text)) {
       return {};
     }
@@ -78,7 +77,7 @@ export default {
 
     // the render can be shared and live elsewhere (`import render from '../useXxxRender'`)
     const componentText = isComposable
-      ? siblings.find((s) => !s.inner && isComponentFile(s))?.text
+      ? findOwnComponent(siblings, base)?.text
       : context.sourceCode.text;
     for (const text of readImportedRenders(componentText ?? '', path.dirname(filename))) {
       siblings.push({
@@ -157,6 +156,16 @@ export const isComposableFile = (filename) => {
 };
 
 const isComponentFile = (sibling) => !sibling.isComposable && /\bdefineComponent\s*\(/.test(sibling.text);
+
+/**
+ * The component of the directory importing the composable `base` (`import setup from './useXxx'`).
+ * The directory can hold other components (`VGridColumnActionRender.ts`): the first one found is
+ * not necessarily the owner.
+ */
+export const findOwnComponent = (siblings, base) => {
+  const importsBase = new RegExp(`from\\s+['"]\\./${escapeRegExp(base)}(?:\\.[jt]sx?)?['"]`);
+  return siblings.find((s) => !s.inner && isComponentFile(s) && importsBase.test(s.text));
+};
 
 const cache = new Map();
 
